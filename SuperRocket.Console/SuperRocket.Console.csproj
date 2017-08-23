@@ -118,6 +118,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EventHandler\BackgroundJobExceptionEventHandler.cs" />
     <Compile Include="Job\TestJob.cs" />
     <Compile Include="Migrations\201410291734574_InitialCreate.cs" />
     <Compile Include="Migrations\201410291734574_InitialCreate.Designer.cs">
