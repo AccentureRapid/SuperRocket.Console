@@ -6,6 +6,7 @@ using Abp.Events.Bus;
 using Abp.BackgroundJobs;
 using SuperRocket.Orchard.Job;
 using System.IO;
+using SuperRocket.Console;
 
 namespace AbpEfConsoleApp
 {
@@ -49,10 +50,28 @@ namespace AbpEfConsoleApp
             Console.WriteLine("Input Data Full Path:" + inputFullPath);
             DirectoryInfo folder = new DirectoryInfo(inputFullPath);
 
+            
+
             foreach (FileInfo file in folder.GetFiles("*.txt"))
             {
                 Console.WriteLine(file.FullName);
-                _backgroundJobManager.Enqueue<DataProcessorJob, string>(file.FullName);
+                var pathDestination = Path.Combine(currentDir, "Out", DateTime.UtcNow.ToString("yyyyMMddHHmmssSSS") + "Train.csv");
+                FileInfo fileDestination = new FileInfo(pathDestination);
+
+                
+                if (!fileDestination.Exists)
+                {
+                    using (FileStream stream = System.IO.File.Create(pathDestination))
+                    {
+
+                    }
+                }
+           
+                _backgroundJobManager.Enqueue<DataProcessorJob, DataParameter>(new DataParameter
+                { 
+                  SourceFileFullPath = file.FullName,
+                  DestinationFileFullPath = pathDestination
+                });
             }
 
             _backgroundJobManager.Enqueue<TestJob, int>(1);
