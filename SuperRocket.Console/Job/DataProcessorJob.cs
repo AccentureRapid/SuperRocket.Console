@@ -60,7 +60,7 @@ namespace SuperRocket.Orchard.Job
             }
 
             await AsyncFile.AppendAllLinesAsync(dataParameter.DestinationFileFullPath, data);
-            System.Console.WriteLine("Done");
+            System.Console.WriteLine(dataParameter.SourceFileFullPath + "processed successfully!");
         }
     }
 }
