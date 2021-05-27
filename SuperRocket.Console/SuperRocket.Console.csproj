@@ -119,6 +119,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EventHandler\BackgroundJobExceptionEventHandler.cs" />
+    <Compile Include="Job\DataProcessorJob.cs" />
     <Compile Include="Job\TestJob.cs" />
     <Compile Include="Migrations\201410291734574_InitialCreate.cs" />
     <Compile Include="Migrations\201410291734574_InitialCreate.Designer.cs">
@@ -143,6 +144,14 @@
     <EmbeddedResource Include="Migrations\201410291734574_InitialCreate.resx">
       <DependentUpon>201410291734574_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="In\data.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Out\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

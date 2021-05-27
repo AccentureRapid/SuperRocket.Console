@@ -5,6 +5,7 @@ using Castle.Core.Logging;
 using Abp.Events.Bus;
 using Abp.BackgroundJobs;
 using SuperRocket.Orchard.Job;
+using System.IO;
 
 namespace AbpEfConsoleApp
 {
@@ -34,23 +35,29 @@ namespace AbpEfConsoleApp
             Logger.Debug("Started Tester.Run()");
 
             //_eventBus.Trigger
+            //1.get data file from in folder
+            //取得控制台应用程序的根目录方法
+            //方法1、Environment.CurrentDirectory 取得或设置当前工作目录的完整限定路径
+            //方法2、AppDomain.CurrentDomain.BaseDirectory 获取基目录，它由程序集冲突解决程序用来探测程序集
+            //Sample output
+            //Current Directory:E:\project\SuperRocket.Console\SuperRocket.Console\bin\Debug\
+            //Input Data Full Path:E:\project\SuperRocket.Console\SuperRocket.Console\bin\Debug\In
+            //E:\project\SuperRocket.Console\SuperRocket.Console\bin\Debug\In\data.txt
+            var currentDir = System.AppDomain.CurrentDomain.BaseDirectory;
+            Console.WriteLine("Current Directory:" + currentDir);
+            var inputFullPath = Path.Combine(currentDir, "In");
+            Console.WriteLine("Input Data Full Path:" + inputFullPath);
+            DirectoryInfo folder = new DirectoryInfo(inputFullPath);
+
+            foreach (FileInfo file in folder.GetFiles("*.txt"))
+            {
+                Console.WriteLine(file.FullName);
+                _backgroundJobManager.Enqueue<DataProcessorJob, string>(file.FullName);
+            }
 
             _backgroundJobManager.Enqueue<TestJob, int>(1);
 
-            //GetAllList
-            foreach (var user in _userRepository.GetAllList())
-            {
-                Console.WriteLine(user);
-            }
-
-            //Get
-            Console.WriteLine("Halil: " + _userRepository.Get(new Guid("c2ee8f4e-8592-44d5-84c2-ac5fca1752fd")));
-
-            //FirstOrDefault
-            Console.WriteLine("Emre: " + _userRepository.FirstOrDefault(new Guid("b7f88a8e-736e-4708-87d5-beab34f1533b")));
-
-            //Unknown user
-            Console.WriteLine("null! " + _userRepository.FirstOrDefault(Guid.NewGuid()));
+          
 
             Logger.Debug("Finished Tester.Run()");
         }
