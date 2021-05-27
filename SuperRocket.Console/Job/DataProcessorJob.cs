@@ -52,6 +52,9 @@ namespace SuperRocket.Orchard.Job
             //Directory.CreateDirectory(appendAllLinesTestFolder);
             //File.WriteAllLines(path, contents);
             //await AsyncFile.AppendAllLinesAsync(path, contents);
+            List<string> header = new List<string>();
+            header.Add("label" + "|,|" + "ques");
+
             List<string> data = new List<string>();
             foreach (var item in list)
             {
@@ -59,6 +62,7 @@ namespace SuperRocket.Orchard.Job
                 data.Add(line);
             }
 
+            await AsyncFile.AppendAllLinesAsync(dataParameter.DestinationFileFullPath, header);
             await AsyncFile.AppendAllLinesAsync(dataParameter.DestinationFileFullPath, data);
             System.Console.WriteLine(dataParameter.SourceFileFullPath + "processed successfully!");
         }
