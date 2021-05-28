@@ -7,6 +7,7 @@ using Abp.BackgroundJobs;
 using SuperRocket.Orchard.Job;
 using System.IO;
 using SuperRocket.Console;
+using System.Threading;
 
 namespace AbpEfConsoleApp
 {
@@ -72,6 +73,8 @@ namespace AbpEfConsoleApp
                   SourceFileFullPath = file.FullName,
                   DestinationFileFullPath = pathDestination
                 });
+
+                Thread.Sleep(2000);
             }
 
             _backgroundJobManager.Enqueue<TestJob, int>(1);

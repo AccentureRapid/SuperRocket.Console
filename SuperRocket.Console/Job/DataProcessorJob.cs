@@ -52,15 +52,42 @@ namespace SuperRocket.Orchard.Job
             //Directory.CreateDirectory(appendAllLinesTestFolder);
             //File.WriteAllLines(path, contents);
             //await AsyncFile.AppendAllLinesAsync(path, contents);
+
+
+            //TODO e.g. :  ,, case need to be handled, 
+            //1.multiple , should be to only one.
+            //2.if , is the last one, should remove it.
+            string pattern = @",{1,999}";
+            RegexOptions ops = RegexOptions.Singleline;
+            Regex reg = new Regex(pattern, ops);
+            
             List<string> header = new List<string>();
             header.Add("label" + "|,|" + "ques");
 
             List<string> data = new List<string>();
             foreach (var item in list)
             {
-                var line = item.Label + "|,|" + item.Question;
-                data.Add(line);
+                
+                if (!string.IsNullOrEmpty(item.Label))
+                {
+                    //1.multiple , should be to only one.
+                    //2.if , is the last one, should remove it.
+                    if (reg.IsMatch(item.Label))
+                    {
+                        item.Label = reg.Replace(item.Label, ",");
+                    }
+
+                    if (item.Label.EndsWith(","))
+                    {
+                        item.Label = item.Label.Substring(0, item.Label.Length - 1);
+                    }
+
+                    var line = item.Label + "|,|" + item.Question;
+                    data.Add(line); 
+                }
             }
+
+            
 
             await AsyncFile.AppendAllLinesAsync(dataParameter.DestinationFileFullPath, header);
             await AsyncFile.AppendAllLinesAsync(dataParameter.DestinationFileFullPath, data);
