@@ -8,6 +8,7 @@ using SuperRocket.Orchard.Job;
 using System.IO;
 using SuperRocket.Console;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace AbpEfConsoleApp
 {
@@ -50,32 +51,46 @@ namespace AbpEfConsoleApp
             var inputFullPath = Path.Combine(currentDir, "In");
             Console.WriteLine("Input Data Full Path:" + inputFullPath);
             DirectoryInfo folder = new DirectoryInfo(inputFullPath);
+            var files = folder.GetFiles("*.txt");
+            List<FileInfo> dataFiles = new List<FileInfo>();
+            dataFiles.AddRange(files);
 
-            
-
-            foreach (FileInfo file in folder.GetFiles("*.txt"))
+            if (files.Length > 0)
             {
-                Console.WriteLine(file.FullName);
-                var pathDestination = Path.Combine(currentDir, "Out", DateTime.UtcNow.ToString("yyyyMMddHHmmss") + file.Name + "_train.csv");
-                FileInfo fileDestination = new FileInfo(pathDestination);
-
-                
-                if (!fileDestination.Exists)
+                _backgroundJobManager.Enqueue<DataProcessorJob, DataFiles>(new DataFiles
                 {
-                    using (FileStream stream = System.IO.File.Create(pathDestination))
-                    {
-
-                    }
-                }
-           
-                _backgroundJobManager.Enqueue<DataProcessorJob, DataParameter>(new DataParameter
-                { 
-                  SourceFileFullPath = file.FullName,
-                  DestinationFileFullPath = pathDestination
+                    SourceFileFullPath = inputFullPath,
+                    SourceFiles = dataFiles
                 });
-
-                Thread.Sleep(2000);
             }
+            else
+            {
+                System.Console.WriteLine("No data files found.");
+            }
+            
+            //foreach (FileInfo file in folder.GetFiles("*.txt"))
+            //{
+            //    Console.WriteLine(file.FullName);
+            //    var pathDestination = Path.Combine(currentDir, "Out", DateTime.UtcNow.ToString("yyyyMMddHHmmss") + file.Name + "_train.csv");
+            //    FileInfo fileDestination = new FileInfo(pathDestination);
+
+
+            //    if (!fileDestination.Exists)
+            //    {
+            //        using (FileStream stream = System.IO.File.Create(pathDestination))
+            //        {
+
+            //        }
+            //    }
+
+            //    _backgroundJobManager.Enqueue<DataProcessorJob, DataParameter>(new DataParameter
+            //    { 
+            //      SourceFileFullPath = file.FullName,
+            //      DestinationFileFullPath = pathDestination
+            //    });
+
+            //    Thread.Sleep(2000);
+            //}
 
             _backgroundJobManager.Enqueue<TestJob, int>(1);
 
