@@ -56,7 +56,7 @@ namespace AbpEfConsoleApp
             foreach (FileInfo file in folder.GetFiles("*.txt"))
             {
                 Console.WriteLine(file.FullName);
-                var pathDestination = Path.Combine(currentDir, "Out", DateTime.UtcNow.ToString("yyyyMMddHHmmssSSS") + "_train.csv");
+                var pathDestination = Path.Combine(currentDir, "Out", DateTime.UtcNow.ToString("yyyyMMddHHmmss") + file.Name + "_train.csv");
                 FileInfo fileDestination = new FileInfo(pathDestination);
 
                 
