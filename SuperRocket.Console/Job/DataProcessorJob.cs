@@ -41,8 +41,8 @@ namespace SuperRocket.Orchard.Job
                          { }
                      }
 
-                    /// 1.read all lines to a list with label, question
-                    var lines = await AsyncFile.ReadAllLinesAsync(file.FullName);
+                     /// 1.read all lines to a list with label, question
+                     var lines = await AsyncFile.ReadAllLinesAsync(file.FullName);
                      DataItem dataItem = null;
                      List<DataItem> list = new List<DataItem>();
                      foreach (var line in lines)
@@ -58,12 +58,14 @@ namespace SuperRocket.Orchard.Job
                          }
                      }
 
-                    //1.multiple , should be to only one.
-                    //2.if , is the last one, should remove it.
-                    string pattern = @",{1,999}";
+                     //1.multiple , should be to only one.
+                     //2.if , is the last one, should remove it.
+                     string pattern = @",{1,999}";
                      RegexOptions ops = RegexOptions.Singleline;
                      Regex reg = new Regex(pattern, ops);
 
+                     string chinesePattern = @"^[\u4E00-\u9FA5]{1,999}$";
+                     Regex chineseReg = new Regex(chinesePattern, ops);
                      List<string> data = new List<string>();
                      foreach (var item in list)
                      {
@@ -71,7 +73,7 @@ namespace SuperRocket.Orchard.Job
                          {
                             //1.multiple , should be to only one.
                             //2.if , is the last one, should remove it.
-                            if (reg.IsMatch(item.Label))
+                             if (reg.IsMatch(item.Label))
                              {
                                  item.Label = reg.Replace(item.Label, ",");
                              }
@@ -81,13 +83,18 @@ namespace SuperRocket.Orchard.Job
                                  item.Label = item.Label.Substring(0, item.Label.Length - 1);
                              }
 
+                             //3.if label is chinese character,ignore this line
+                             if (chineseReg.IsMatch(item.Label))
+                             {
+                                 item.Label = reg.Replace(item.Label, "news");
+                             }
                              var line = item.Label + "|,|" + item.Question;
                              data.Add(line);
                          }
                      }
 
                      allData.AddRange(data);
-                     await AsyncFile.AppendAllLinesAsync(pathDestination, data);
+                     await AsyncFile.AppendAllLinesAsync(pathDestination, data, Encoding.UTF8);
                      System.Console.WriteLine(file.FullName + " processed successfully！");
                      return true;
                  });
@@ -100,7 +107,7 @@ namespace SuperRocket.Orchard.Job
             //output a merged file
             var mergerdFilePath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Out", DateTime.UtcNow.ToString("yyyyMMddHHmmss") + "merged_train.csv");
             AppendHeader(mergerdFilePath);
-            await AsyncFile.AppendAllLinesAsync(mergerdFilePath, allData);
+            await AsyncFile.AppendAllLinesAsync(mergerdFilePath, allData, Encoding.UTF8);
             System.Console.WriteLine("All data counts" + allData.Count().ToString());
             System.Console.WriteLine("All files processed successfully！");
         }
@@ -109,7 +116,7 @@ namespace SuperRocket.Orchard.Job
         {
             List<string> header = new List<string>();
             header.Add("label" + "|,|" + "ques");
-            await AsyncFile.AppendAllLinesAsync(fileFullPathDestination, header);
+            await AsyncFile.AppendAllLinesAsync(fileFullPathDestination, header, Encoding.UTF8);
         }
     }
 }
