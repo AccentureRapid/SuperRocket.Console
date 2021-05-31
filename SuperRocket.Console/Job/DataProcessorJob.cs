@@ -33,7 +33,9 @@ namespace SuperRocket.Orchard.Job
 
                      System.Console.WriteLine(file.FullName);
                      var pathDestination = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Out", DateTime.UtcNow.ToString("yyyyMMddHHmmss") + file.Name + "_train.csv");
+                     var errorPathDestination = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Out", DateTime.UtcNow.ToString("yyyyMMddHHmmss") + file.Name + "_error.csv");
                      FileInfo fileDestination = new FileInfo(pathDestination);
+                     FileInfo errorFileDestination = new FileInfo(errorPathDestination);
 
                      if (!fileDestination.Exists)
                      {
@@ -41,10 +43,17 @@ namespace SuperRocket.Orchard.Job
                          { }
                      }
 
+                     if (!errorFileDestination.Exists)
+                     {
+                         using (FileStream stream = System.IO.File.Create(errorPathDestination))
+                         { }
+                     }
+
                      /// 1.read all lines to a list with label, question
                      var lines = await AsyncFile.ReadAllLinesAsync(file.FullName);
                      DataItem dataItem = null;
                      List<DataItem> list = new List<DataItem>();
+                     List<DataItem> errorlist = new List<DataItem>();
                      foreach (var line in lines)
                      {
                          System.Console.WriteLine(line);
@@ -64,7 +73,7 @@ namespace SuperRocket.Orchard.Job
                      RegexOptions ops = RegexOptions.Singleline;
                      Regex reg = new Regex(pattern, ops);
 
-                     string chinesePattern = @"^[\u4E00-\u9FA5]{1,999}$";
+                     string chinesePattern = @"[\u4e00-\u9fa5]";
                      Regex chineseReg = new Regex(chinesePattern, ops);
                      List<string> data = new List<string>();
                      foreach (var item in list)
@@ -75,26 +84,39 @@ namespace SuperRocket.Orchard.Job
                             //2.if , is the last one, should remove it.
                              if (reg.IsMatch(item.Label))
                              {
+                                 errorlist.Add(item);
                                  item.Label = reg.Replace(item.Label, ",");
                              }
 
                              if (item.Label.EndsWith(","))
                              {
+                                 errorlist.Add(item);
                                  item.Label = item.Label.Substring(0, item.Label.Length - 1);
                              }
 
                              //3.if label is chinese character,ignore this line
+                             //string mayContainsChinese = item.Label.Replace(",", "").Replace("，","");
+
                              if (chineseReg.IsMatch(item.Label))
                              {
-                                 item.Label = reg.Replace(item.Label, "news");
+                                 errorlist.Add(item);
+                                 item.Label = "news";
                              }
                              var line = item.Label + "|,|" + item.Question;
                              data.Add(line);
                          }
                      }
 
+                     List<string> errorLines = new List<string>();
+                     foreach (var errorItem in errorlist)
+                     {
+                         var line = errorItem.Label + "|,|" + errorItem.Question;
+                         errorLines.Add(line);
+                     }
+
                      allData.AddRange(data);
                      await AsyncFile.AppendAllLinesAsync(pathDestination, data, Encoding.UTF8);
+                     await AsyncFile.AppendAllLinesAsync(errorPathDestination, errorLines, Encoding.UTF8);
                      System.Console.WriteLine(file.FullName + " processed successfully！");
                      return true;
                  });
