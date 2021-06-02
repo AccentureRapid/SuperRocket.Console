@@ -151,9 +151,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="In\data.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Content Include="In\data.txt" />
     <Content Include="In\invalidData.txt" />
     <Content Include="Out\readme.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

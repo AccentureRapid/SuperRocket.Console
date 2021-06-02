@@ -84,13 +84,11 @@ namespace SuperRocket.Orchard.Job
                             //2.if , is the last one, should remove it.
                              if (reg.IsMatch(item.Label))
                              {
-                                 errorlist.Add(item);
                                  item.Label = reg.Replace(item.Label, ",");
                              }
 
                              if (item.Label.EndsWith(","))
                              {
-                                 errorlist.Add(item);
                                  item.Label = item.Label.Substring(0, item.Label.Length - 1);
                              }
 
