@@ -62,40 +62,41 @@ namespace SuperRocket.Orchard.Job
 
             if (result.Item1)
             {
-                var collector = result.Item2;
-                System.Console.WriteLine("Enumrate Minio objects start...");
-                List<Item> allObjects = new List<Item>();
+                //var collector = result.Item2;
+                //System.Console.WriteLine("Enumrate Minio objects start...");
+                //List<Item> allObjects = new List<Item>();
 
-                collector.Subscribe(item =>
+                //collector.Subscribe(item =>
+                //{
+                //    System.Console.WriteLine(item.Key);
+                //    //allObjects.Add(item);
+                //    //var fileName = Path.Combine(dataFilesPath, DateTime.UtcNow.ToString("yyyyMMddHHmmss") + "_" + item.Key);
+                //    //await MinioHelper.GetObjectAsync(client, bucket, item.Key, fileName);
+                //    //fileNameMappings.Add(item.Key, fileName);
+                //}, ex => System.Console.WriteLine($"OnError: {ex}"),
+                //() => {
+                //    Thread.Sleep(5000);
+                //    System.Console.WriteLine("all data printed...");
+                //});
+
+                //System.Console.WriteLine($"Listed all objects in bucket {bucket} :  {allObjects.Count()}");
+                //System.Console.WriteLine("Enumrate objects end...");
+                //after collect all the mimio objects, query all the data
+
+                // #### a simple query ####
+
+                string sql = "SELECT article_url, article_title, article_content_path, article_tags, create_date FROM public.it_xueyuan_article_info";
+
+                DataTable data = db.ExecuteDataset(CommandType.Text, sql)[0];
+                System.Console.WriteLine("Total row count: " + data.Rows.Count.ToString());
+
+                foreach (DataRow row in data.Rows)
                 {
-                    System.Console.WriteLine(item.Key);
-                    //allObjects.Add(item);
-                    //var fileName = Path.Combine(dataFilesPath, DateTime.UtcNow.ToString("yyyyMMddHHmmss") + "_" + item.Key);
-                    //await MinioHelper.GetObjectAsync(client, bucket, item.Key, fileName);
-                    //fileNameMappings.Add(item.Key, fileName);
-                }, ex => System.Console.WriteLine($"OnError: {ex}"),
-                () => {
-                    System.Console.WriteLine("all data printed...");
+                    System.Console.WriteLine($"Acticle Url:  {row["article_url"]}, Title:{row["article_title"]}, Tags: {row["article_tags"]}");
+                }
 
-                    System.Console.WriteLine($"Listed all objects in bucket {bucket} :  {allObjects.Count()}");
-                    System.Console.WriteLine("Enumrate objects end...");
-                    //after collect all the mimio objects, query all the data
-
-                    // #### a simple query ####
-
-                    string sql = "SELECT article_url, article_title, article_content_path, article_tags, create_date FROM public.it_xueyuan_article_info";
-
-                    DataTable data = db.ExecuteDataset(CommandType.Text, sql)[0];
-                    System.Console.WriteLine("Total row count: " + data.Rows.Count.ToString());
-
-                    foreach (DataRow row in data.Rows)
-                    {
-                        System.Console.WriteLine($"Acticle Url:  {row["article_url"]}, Title:{row["article_title"]}, Tags: {row["article_tags"]}");
-                    }
-
-                    // Write data to one txt file.
-                    WriteDataLine(data.Rows);
-                });
+                // Write data to one txt file.
+                WriteDataLine(data.Rows);
             }
             Thread.Sleep(5000);
             System.Console.WriteLine("{0} Test job completed with {1} counts successfully!", DateTime.Now.ToString(), number);
