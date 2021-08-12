@@ -66,15 +66,17 @@ namespace SuperRocket.Orchard.Job
                 System.Console.WriteLine("Enumrate Minio objects start...");
                 List<Item> allObjects = new List<Item>();
 
-                collector.Subscribe(async item =>
+                collector.Subscribe(item =>
                 {
                     System.Console.WriteLine(item.Key);
-                    allObjects.Add(item);
-                    var fileName = Path.Combine(dataFilesPath, DateTime.UtcNow.ToString("yyyyMMddHHmmss") + "_" + item.Key);
-                    await MinioHelper.GetObjectAsync(client, bucket, item.Key, fileName);
-                    fileNameMappings.Add(item.Key, fileName);
+                    //allObjects.Add(item);
+                    //var fileName = Path.Combine(dataFilesPath, DateTime.UtcNow.ToString("yyyyMMddHHmmss") + "_" + item.Key);
+                    //await MinioHelper.GetObjectAsync(client, bucket, item.Key, fileName);
+                    //fileNameMappings.Add(item.Key, fileName);
                 }, ex => System.Console.WriteLine($"OnError: {ex}"),
-                async () => {
+                () => {
+                    System.Console.WriteLine("all data printed...");
+
                     System.Console.WriteLine($"Listed all objects in bucket {bucket} :  {allObjects.Count()}");
                     System.Console.WriteLine("Enumrate objects end...");
                     //after collect all the mimio objects, query all the data
@@ -86,20 +88,15 @@ namespace SuperRocket.Orchard.Job
                     DataTable data = db.ExecuteDataset(CommandType.Text, sql)[0];
                     System.Console.WriteLine("Total row count: " + data.Rows.Count.ToString());
 
-                    Thread.Sleep(5000);
-
                     foreach (DataRow row in data.Rows)
                     {
                         System.Console.WriteLine($"Acticle Url:  {row["article_url"]}, Title:{row["article_title"]}, Tags: {row["article_tags"]}");
                     }
 
-                    System.Console.WriteLine("all data printed...");
                     // Write data to one txt file.
-                    WriteDataLine(data.Rows, fileNameMappings);
-
+                    WriteDataLine(data.Rows);
                 });
             }
-
             Thread.Sleep(5000);
             System.Console.WriteLine("{0} Test job completed with {1} counts successfully!", DateTime.Now.ToString(), number);
         }
@@ -164,6 +161,43 @@ namespace SuperRocket.Orchard.Job
                 await AsyncFile.AppendAllLinesAsync(outputContentFileName, lines);
                 System.Console.WriteLine("data file with tag and content completed successfully!");
             }
+        }
+
+        public async void WriteDataLine(DataRowCollection rows)
+        {
+            var currentDir = System.AppDomain.CurrentDomain.BaseDirectory;
+            System.Console.WriteLine("Current Directory:" + currentDir);
+            var dataFilesPath = Path.Combine(currentDir, "Out");
+            System.Console.WriteLine("Output data file Full Path:" + dataFilesPath);
+            var outputTitleFileName = Path.Combine(dataFilesPath, DateTime.UtcNow.ToString("yyyyMMddHHmmss") + "_" + "title.txt");
+            var outputContentFileName = Path.Combine(dataFilesPath, DateTime.UtcNow.ToString("yyyyMMddHHmmss") + "_" + "content.txt");
+
+            List<string> lines = new List<string>();
+            List<string> contentLines = new List<string>();
+            foreach (DataRow row in rows)
+            {
+                var article_url = row["article_url"].ToString();
+                var article_title = row["article_title"].ToString();
+                var article_tags = row["article_tags"].ToString();
+                var article_content_path = row["article_content_path"].ToString();
+
+                //read content from fileFullName as conent
+
+                StringBuilder sb = new StringBuilder();
+                var tags = article_tags.Split(TagSeprator.ToCharArray()).Where(x => x != "");
+                var tagString = string.Join("|", tags);
+                sb.Append(tagString);
+                sb.Append(",");
+                sb.Append(article_title);
+
+                var line = sb.ToString();
+                lines.Add(line);
+                
+            }
+            //算法|数据结构,连续子数组的元素之和最大值(tag1|tag2,title or tag1|tag2,article_content)
+            MakeSureFileExists(outputTitleFileName);
+            await AsyncFile.AppendAllLinesAsync(outputTitleFileName, lines);
+            System.Console.WriteLine("data file with tag and title completed successfully!");
         }
 
         private static void MakeSureFileExists(string fileFullName)
